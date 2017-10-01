@@ -1,16 +1,16 @@
 package backpack
 
 type Item struct {
-	name   string
+	name   int
 	weight float64
 	price  float64
 }
 
-func NewItem(name string, weight, price float64) *Item {
+func NewItem(name int, weight, price float64) *Item {
 	return &Item{name, weight, price}
 }
 
-func (item *Item) GetName() string {
+func (item *Item) GetName() int {
 	return item.name
 }
 
