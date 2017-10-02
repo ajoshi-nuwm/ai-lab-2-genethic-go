@@ -6,7 +6,6 @@ import (
 	"strconv"
 	"strings"
 	"github.com/ajoshi-nuwm/ai-lab-2-genethic-go/gene"
-	"fmt"
 )
 
 func main() {
@@ -15,7 +14,6 @@ func main() {
 		panic(err)
 	}
 	backPackWeight, err := strconv.ParseFloat(fileData[0], 64)
-	backPack := &backpack.Backpack{TotalWeight: backPackWeight}
 
 	items := make([]*backpack.Item, len(fileData)-1)
 
@@ -26,9 +24,9 @@ func main() {
 		items[i] = backpack.NewItem(i, weight, price)
 	}
 
-	for i := 0; i < 1; i++ {
-		population := gene.GetInitialPopulation(4, len(items))
-		fmt.Println(population)
-		fmt.Println(backPack)
-	}
+	population := gene.GetInitialPopulation(4, len(items))
+	backPack := backpack.NewBackPack(backPackWeight, items, population)
+
+	backPack.NextGeneration()
+
 }
