@@ -6,13 +6,13 @@ type Object interface{}
 
 // Segment of probability ruler
 type Segment struct {
-	ruleObject *Object
+	ruleObject Object
 	start      float64
 	end        float64
 }
 
 // Accepts closure for probability calculation and list of objects
-func GetObjectProbailityRule(getProbability func(object *Object) float64, objects []*Object) *Object {
+func GetObjectProbailityRule(getProbability func(object Object) float64, objects []Object) Object {
 	segments := []Segment{}
 	var start float64
 	for _, object := range objects {

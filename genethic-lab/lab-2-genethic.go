@@ -28,5 +28,4 @@ func main() {
 	backPack := backpack.NewBackPack(backPackWeight, items, population)
 
 	backPack.NextGeneration()
-
 }

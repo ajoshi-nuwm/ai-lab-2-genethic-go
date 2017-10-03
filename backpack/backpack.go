@@ -9,6 +9,7 @@ import (
 	"github.com/ajoshi-nuwm/ai-lab-2-genethic-go/gene"
 	"math/rand"
 	"fmt"
+	"github.com/ajoshi-nuwm/ai-lab-2-genethic-go/utils"
 )
 
 type Backpack struct {
@@ -50,23 +51,28 @@ func (backpack *Backpack) NextGeneration() {
 }
 
 func (backpack *Backpack) getCurrentParents() []*gene.Gene {
-	parents := make([]*gene.Gene, 0)
-	averageHealth := backpack.getAverageHealth()
 
-	for _, currentGene := range backpack.genes {
-		if currentGene.GetHealth(backpack.getItemsAsContextValues()) > averageHealth {
-			parents = append(parents, currentGene)
-		}
-	}
-	return parents
+	genesCopy := make([]*gene.Gene, len(backpack.genes))
+	copy(genesCopy, backpack.genes)
+	backpack.getNextParent(genesCopy)
+	return backpack.genes[:len(backpack.genes) / 2]
 }
 
-func (backpack *Backpack) getAverageHealth() float64 {
-	sum := 0.0
+func (backpack *Backpack) getNextParent(genes []*gene.Gene) {
+	objects := backpack.getGenesAsObjects()
 	for _, currentGene := range backpack.genes {
-		sum += currentGene.GetHealth(backpack.getItemsAsContextValues())
+		rule := util.GetObjectProbailityRule(func(object util.Object) float64 {
+			return currentGene.GetHealth(backpack.getItemsAsContextValues()) / currentGene.GetDecease(backpack.getItemsAsContextValues())
+		}, objects)
+
+		currentGene, ok := rule.(gene.Gene)
+		fmt.Println(rule)
+		if ok {
+			fmt.Println("HERE WE GO")
+			fmt.Println(currentGene)
+		}
+
 	}
-	return sum / float64(len(backpack.items))
 }
 
 func (backpack *Backpack) getItemsAsContextValues() []gene.ContextValue {
@@ -75,4 +81,12 @@ func (backpack *Backpack) getItemsAsContextValues() []gene.ContextValue {
 		contextValues[i] = *item
 	}
 	return contextValues
+}
+
+func (backpack *Backpack) getGenesAsObjects() []util.Object {
+	objects := make([]util.Object, len(backpack.genes))
+	for i, gene := range backpack.genes {
+		objects[i] = *gene
+	}
+	return objects
 }

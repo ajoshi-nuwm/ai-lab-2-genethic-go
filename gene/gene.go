@@ -11,7 +11,8 @@ type Gene struct {
 }
 
 type ContextValue interface {
-	GetValue() float64
+	GetPositive() float64
+	GetNegative() float64
 }
 
 func (gene *Gene) GetLength() int {
@@ -56,7 +57,17 @@ func (gene *Gene) GetHealth(contextValues []ContextValue) float64 {
 	sum := 0.0
 	for i, contains := range gene.chromosomes {
 		if contains {
-			sum += contextValues[i].GetValue()
+			sum += contextValues[i].GetPositive()
+		}
+	}
+	return sum
+}
+
+func (gene *Gene) GetDecease(contextValues []ContextValue) float64 {
+	sum := 0.0
+	for i, contains := range gene.chromosomes {
+		if contains {
+			sum += contextValues[i].GetPositive()
 		}
 	}
 	return sum
