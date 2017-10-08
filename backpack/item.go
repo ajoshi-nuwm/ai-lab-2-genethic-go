@@ -23,11 +23,3 @@ func (item *Item) GetWeight() float64 {
 func (item *Item) GetPrice() float64 {
 	return item.price
 }
-
-func (item Item) GetPositive() float64 {
-	return item.GetPrice()
-}
-
-func (item Item) GetNegative() float64 {
-	return item.GetWeight()
-}

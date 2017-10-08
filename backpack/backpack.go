@@ -6,87 +6,78 @@ backpack.go contains
 package backpack
 
 import (
-	"github.com/ajoshi-nuwm/ai-lab-2-genethic-go/gene"
 	"math/rand"
 	"fmt"
-	"github.com/ajoshi-nuwm/ai-lab-2-genethic-go/utils"
 )
 
 type Backpack struct {
 	TotalWeight float64
-	items       []*Item
-	genes       []*gene.Gene
+	items       []Item
+	genes       []Gene
 }
 
-func NewBackPack(totalWeight float64, items []*Item, genes []*gene.Gene) *Backpack {
+func NewBackPack(totalWeight float64, items []Item, genes []Gene) *Backpack {
 	return &Backpack{totalWeight, items, genes}
 }
 
 func (backpack *Backpack) NextGeneration() {
-	fmt.Println("before")
-	fmt.Println(backpack.genes)
-	splitPoint := rand.Intn(backpack.genes[0].GetLength())
+	newGeneration := make([]Gene, 0)
 	parents := backpack.getCurrentParents()
-	newGeneration := make([]*gene.Gene, 0)
 
-	fmt.Println("parents")
-	fmt.Println(parents)
 	for i := 0; i < len(parents); i += 2 {
-		children1, children2 := parents[i/2].Crossover(parents[i/2+1], splitPoint)
-		newGeneration = append(newGeneration, children1)
-		newGeneration = append(newGeneration, children2)
+		children1, children2 := parents[i].Crossover(&parents[i+1], rand.Intn(parents[i].GetLength()))
+		newGeneration = append(newGeneration, children1, children2)
+		newGeneration = append(newGeneration, *parents[i].Mutation(), *parents[i+1].Mutation())
 	}
-
-	for _, parent := range parents {
-		if rand.Float64() > 0.5 {
-			newGeneration = append(newGeneration, parent.Mutation())
-		} else {
-			newGeneration = append(newGeneration, parent)
-		}
-	}
-
 	backpack.genes = newGeneration
-	fmt.Println("after")
-	fmt.Println(backpack.genes)
 }
 
-func (backpack *Backpack) getCurrentParents() []*gene.Gene {
-
-	genesCopy := make([]*gene.Gene, len(backpack.genes))
+func (backpack *Backpack) getCurrentParents() []Gene {
+	genesCopy := make([]Gene, len(backpack.genes))
+	parents := make([]Gene, 0)
 	copy(genesCopy, backpack.genes)
-	backpack.getNextParent(genesCopy)
-	return backpack.genes[:len(backpack.genes) / 2]
+
+	for i := 0; i < len(backpack.genes)/2; i++ {
+		parentIndex, parent := backpack.getNextParent(genesCopy)
+		genesCopy = cutGeneFromSlice(genesCopy, parentIndex)
+		parents = append(parents, parent)
+	}
+	return parents
 }
 
-func (backpack *Backpack) getNextParent(genes []*gene.Gene) {
-	objects := backpack.getGenesAsObjects()
-	for _, currentGene := range backpack.genes {
-		rule := util.GetObjectProbailityRule(func(object util.Object) float64 {
-			return currentGene.GetHealth(backpack.getItemsAsContextValues()) / currentGene.GetDecease(backpack.getItemsAsContextValues())
-		}, objects)
-
-		currentGene, ok := rule.(gene.Gene)
-		fmt.Println(rule)
-		if ok {
-			fmt.Println("HERE WE GO")
-			fmt.Println(currentGene)
+func (backpack *Backpack) getNextParent(genes []Gene) (int, Gene) {
+	return GetObjectProbabilityRule(func(gene Gene) float64 {
+		if backpack.TotalWeight < gene.GetDecease(backpack.items) {
+			return 1 / gene.GetDecease(backpack.items)
 		}
+		return gene.GetHealth(backpack.items) / gene.GetDecease(backpack.items)
+	}, genes)
+}
 
+func (backpack *Backpack) PrintSolution() {
+	var bestGene *Gene = GetMinimalGene(backpack.items, backpack.TotalWeight)
+	fmt.Println(backpack.TotalWeight)
+	for i := 0; i < 100000; i++ {
+		backpack.NextGeneration()
+
+		for _, gene := range backpack.genes {
+			if gene.GetDecease(backpack.items) <= backpack.TotalWeight && gene.GetHealth(backpack.items) > bestGene.GetHealth(backpack.items) {
+				fmt.Println(gene)
+				fmt.Println(gene.GetHealth(backpack.items))
+				fmt.Println(gene.GetDecease(backpack.items))
+				bestGene = &gene
+			}
+		}
 	}
 }
 
-func (backpack *Backpack) getItemsAsContextValues() []gene.ContextValue {
-	contextValues := make([]gene.ContextValue, len(backpack.items))
-	for i, item := range backpack.items {
-		contextValues[i] = *item
+func cutGeneFromSlice(genes []Gene, cutPoint int) []Gene {
+	switch cutPoint {
+	case 0:
+		return genes[1:]
+	case len(genes) - 1:
+		return genes[:len(genes)-2]
+	default:
+		return append(genes[:cutPoint], genes[cutPoint+1:]...)
 	}
-	return contextValues
-}
-
-func (backpack *Backpack) getGenesAsObjects() []util.Object {
-	objects := make([]util.Object, len(backpack.genes))
-	for i, gene := range backpack.genes {
-		objects[i] = *gene
-	}
-	return objects
 }
