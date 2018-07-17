@@ -46,16 +46,21 @@ func (backpack *Backpack) getCurrentParents() []Gene {
 }
 
 func (backpack *Backpack) getNextParent(genes []Gene) (int, Gene) {
-	return GetObjectProbabilityRule(func(gene Gene) float64 {
-		if backpack.TotalWeight < gene.GetDecease(backpack.items) {
-			return 1 / gene.GetDecease(backpack.items)
+	var gene Gene
+	var index int
+	GetObjectProbabilityRule(len(genes), func(i int) float64 {
+		if backpack.TotalWeight < genes[i].GetDecease(backpack.items) {
+			return 1 / genes[i].GetDecease(backpack.items)
 		}
-		return gene.GetHealth(backpack.items) / gene.GetDecease(backpack.items)
-	}, genes)
+		return genes[i].GetHealth(backpack.items) / genes[i].GetDecease(backpack.items)
+	}, func(i int) {
+		gene, index = genes[i], i
+	})
+	return index, gene
 }
 
 func (backpack *Backpack) PrintSolution() {
-	var bestGene *Gene = GetMinimalGene(backpack.items, backpack.TotalWeight)
+	bestGene := GetMinimalGene(backpack.items, backpack.TotalWeight)
 	fmt.Println(backpack.TotalWeight)
 	for i := 0; i < 100000; i++ {
 		backpack.NextGeneration()

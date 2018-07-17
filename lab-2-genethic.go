@@ -8,7 +8,7 @@ import (
 )
 
 func main() {
-	fileData, err := util.ReadFromFile("C:\\workspace\\bin\\testcase01.txt")
+	fileData, err := util.ReadFromFile("/home/ajoshi/Desktop/genetic-test.txt")
 	if err != nil {
 		panic(err)
 	}

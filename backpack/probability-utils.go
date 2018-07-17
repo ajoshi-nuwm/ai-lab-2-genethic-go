@@ -6,35 +6,33 @@ import (
 	"math"
 )
 
-type Object interface{}
-
 // Segment of probability ruler
 type Segment struct {
-	gene  Gene
 	start float64
 	end   float64
 }
 
 // Accepts closure for probability calculation and list of objects
-func GetObjectProbabilityRule(getProbability func(gene Gene) float64, genes []Gene) (int, Gene) {
-	segments := []Segment{}
+func GetObjectProbabilityRule(len int, probability func(int) float64, target func(int)) {
+	var segments []Segment
 	var start float64
-	for _, gene := range genes {
-		probability := getProbability(gene)
+	for i := 0; i < len; i++ {
+		probability := probability(i)
 		if math.IsNaN(probability) {
 			probability = 0
 		}
-		segments = append(segments, Segment{gene, start, start + probability})
+		segments = append(segments, Segment{start, start + probability})
 		start += probability
 	}
 	random := rand.Float64() * start
 	for index, segment := range segments {
 		if segment.isInSegment(random) {
-			return index, segment.gene
+			target(index)
+			return
 		}
 	}
 	fmt.Println(segments)
-	panic("Can not choose gene")
+	panic("Can not choose object")
 }
 
 // Checks if number is in segment
